@@ -1,0 +1,31 @@
+cmake_minimum_required(VERSION 3.24)
+
+project(
+    SDLOgg#
+    LANGUAGES CXX C #
+    DESCRIPTION "ogg tool"
+    VERSION 0.0.1
+)
+
+### 当你检查了n边,认为你的cmake并无问题而仍然出错达不到期望效果时,把cmake-build删了重新生成
+
+add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/source-charset:utf-8>")
+add_compile_options("$<$<C_COMPILER_ID:MSVC>:/source-charset:utf-8>")
+
+set(pro_name SDLOgg)
+set(pro_lib_name fsBackend)
+
+set(SYS_DLL_DIR "F:/C++Program/bin" CACHE PATH "你的一个全局动态链接库搜索路径" )
+
+include(3rdParty/include_3rds.cmake)#第三方
+add_subdirectory(SDLOgg) 
+
+option(BUILD_TEST "should build unittest" OFF)
+
+# 如果为顶层cmake(这个库为工程本体-> 库开发) 必会开启测试
+if (PROJECT_IS_TOP_LEVEL OR BUILD_TEST) 
+    include(CTest) 
+    enable_testing()
+    add_subdirectory(test)
+
+endif()

@@ -1,0 +1,45 @@
+file(GLOB_RECURSE pro_lib_includes ./core/*.hpp ./ZaXiang/*.hpp ./pch.hpp )
+file(GLOB_RECURSE pro_lib_src ./core/*.cpp ./ZaXiang/*.cpp )
+file(GLOB_RECURSE pro_exe_src ./sdlogg/*.cpp )
+file(GLOB_RECURSE pro_exe_includes ./sdlogg/*.hpp )
+
+set(pro_include_dirs 
+        ./core
+        ./ZaXiang
+        )
+
+
+add_library(${pro_lib_name} STATIC ${pro_lib_src} ${pro_lib_includes})
+add_executable(${pro_name} ${pro_exe_src} ${pro_exe_includes})
+set(WIN32 True)
+
+target_include_directories(${pro_lib_name} PUBLIC ${pro_include_dirs})
+message("3rd libs  " ${3rd_LIBS})
+target_link_libraries(${pro_lib_name} PUBLIC ${3rd_LIBS})
+
+target_link_libraries(${pro_name} PUBLIC ${pro_lib_name})
+
+
+target_compile_features(${pro_lib_name} PUBLIC cxx_std_17)
+target_compile_features(${pro_name} PUBLIC cxx_std_17)
+target_precompile_headers(${pro_lib_name} PUBLIC ./core/pch.hpp)
+target_precompile_headers(${pro_name} REUSE_FROM ${pro_lib_name})
+
+
+# for testing install
+# add_custom_command 签名中的目标必须存在，并且必须在当前目录中定义
+macro(add_dllToSystem dll_Path)
+    add_custom_command(TARGET ${pro_name} POST_BUILD 
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${dll_Path} ${SYS_DLL_DIR})
+    message("dll :"${dll_Path} )
+    message("has added to sys path :"${SYS_DLL_DIR} )
+endmacro(add_dllToSystem)
+
+foreach(_var ${3rd_LIBS_DLLS})
+    add_dllToSystem(${_var})
+endforeach()
+
+message("${pro_name} src files: ${pro_exe_src} ")
+message("${pro_name} include files: ${pro_lib_includes} ")
+
+

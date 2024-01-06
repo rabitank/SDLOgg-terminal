@@ -1,0 +1,21 @@
+###
+# 测试用子模块的cmakelist
+###
+
+#等同于 define AddTest(x)
+# ${varname} 变量求值取值
+# WORKING_DIRECTORY 设置test的exe的工作目录以便能读取资源,注意这里的root是build的位置。还请使用绝对的变量路径
+
+
+
+
+macro(AddTest target_name)
+    add_executable(${target_name} ./${target_name}.cpp) 
+    target_link_libraries(${target_name} PRIVATE ${pro_name})
+    # target_precompile_headers(${target_name} REUSE_FROM ${engine_name})
+    # CMAKE_CURRENT_SOURCE_DIR 当前的cmake文件路径
+    add_test(NAME ${target_name} WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} COMMAND $<TARGET_FILE:${target_name}>)
+endmacro()
+
+add_subdirectory(sdl_test)
+
