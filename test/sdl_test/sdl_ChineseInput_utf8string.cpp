@@ -1,7 +1,7 @@
 #include"SDL.h"
 #include"SDL_ttf.h"
 #include<string>
-#include"core/utf8string.hpp"
+#include"utf8string.h"
 
 
 SDL_Surface* surface = nullptr;

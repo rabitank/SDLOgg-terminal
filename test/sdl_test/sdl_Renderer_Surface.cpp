@@ -49,7 +49,7 @@ int main(int, char**){
     uint32_t* pptr = (uint32_t*)surface->pixels;
 
     // SDL 转换surface 格式 (safe)
-    SDL_ConvertSurfaceFormat(surface,SDL_PIXELFORMAT_ABGR8888,0);
+    auto newSurface = SDL_ConvertSurfaceFormat(surface,SDL_PIXELFORMAT_ABGR8888,0);
 
     // surface pitch 反应一行像素占用字节数
     //      pitch 不完全等于 in_depth*surface->w。 

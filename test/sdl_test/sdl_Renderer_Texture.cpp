@@ -1,5 +1,5 @@
 #include <iostream>
-#include "core/log.hpp"
+#include "debug.hpp"
 #include "SDL.h"
 
 

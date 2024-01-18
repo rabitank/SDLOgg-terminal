@@ -8,6 +8,6 @@ assets
 3rdParty/spdlog/*
 3rdParty/glm/glm
 3rdParty/yaml/*
-
+test
 
 example

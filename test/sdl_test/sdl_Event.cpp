@@ -17,8 +17,9 @@ int main(int,char** )
     newevent.type = MY_EVENT_1;
     const char* eventname = "custom event";
     newevent.user.data1 = (void*)eventname; 
-    newevent.user.data1 = (void*)1; 
+    newevent.user.data2 = (void*)1; 
     SDL_PushEvent(&newevent);
+
     
     while(!quit)
     {
@@ -30,7 +31,7 @@ int main(int,char** )
             }
             if(event.type == SDL_MOUSEBUTTONDOWN)
             {
-                event.button.button = SDL_BUTTON_LEFT;
+                event.button.button == SDL_BUTTON_LEFT;
             }
             if(event.type == SDL_KEYDOWN)
             {

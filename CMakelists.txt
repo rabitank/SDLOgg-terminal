@@ -9,8 +9,8 @@ project(
 
 ### 当你检查了n边,认为你的cmake并无问题而仍然出错达不到期望效果时,把cmake-build删了重新生成
 
-add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/source-charset:utf-8>")
-add_compile_options("$<$<C_COMPILER_ID:MSVC>:/source-charset:utf-8>")
+# add_compile_options("$<$<CXX_COMPILER_ID:GNU>:/source-charset:utf-8>")
+# add_compile_options("$<$<C_COMPILER_ID:GNU>:/source-charset:utf-8>")
 
 set(pro_name SDLOgg)
 set(pro_lib_name fsBackend)

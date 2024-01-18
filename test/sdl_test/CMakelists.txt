@@ -2,20 +2,19 @@
 # 测试用子模块的cmakelist
 ###
 
+# 确保dll查找列表中有需要的dll
+# 如果新添加了PATH 记得重启vscode
 
 
 macro(AddTest target_name)
-    add_executable(${target_name} ./${target_name}.cpp ) 
-    target_link_libraries(${target_name} PRIVATE ${pro_name}_lib )
-    target_include_directories(${target_name} PUBLIC "${PROJECT_SOURCE_DIR}/${PRO_INCLUDE_DIR}") # PRO_INCLUDE_DIR 是顶层的相对路径 so
+    add_executable(${target_name} ./${target_name}.cpp ${PRO_SRC_FILES}) 
+    target_link_libraries(${target_name} PRIVATE ${SDL_LIBRARIES} )
     # WORKING_DIRECTORY 设置test 的工作目录
     add_test(NAME ${target_name} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND $<TARGET_FILE:${target_name}>)
 endmacro()
 
 
-message("Test cwd: " ${PROJECT_SOURCE_DIR})
-message("in Test: pro include dir: " ${PRO_INCLUDE_DIR})
- #注意不能出现工程中同名target
+#注意不能出现工程中同名target
 AddTest(sdl_Renderer)
 AddTest(sdl_Window) 
 AddTest(sdl_Renderer_Game) 
@@ -26,4 +25,5 @@ AddTest(sdl_Text)
 AddTest(sdl_Timer) 
 AddTest(sdl_Loadlib) 
 AddTest(sdl_Audio) 
-AddTest(sdl_ChineseInput_utf8string) 
+AddTest(sdl_EventWatcher) 
+AddTest(sdl_Loadimage) 
