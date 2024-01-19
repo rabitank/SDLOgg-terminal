@@ -32,14 +32,9 @@ int main(int ,char**)
     auto togg = Sys::Load("resource/ogg_test1.ogg");
     Sys::Load("resource/ogg_test2.ogg");
     Sys::Load("resource/ogg_test3.ogg");
-    Sys::Load("resource/ogg_test4.ogg");
-    Sys::Load("resource/ogg_test5.ogg");
-    
 
 
-
-
-    auto Sysrenderer = Sys::Get()->ItemsRenderer();
+    auto Sysrenderer = Sys::Get()->flashItemsRenderer();
     auto Logrenderer = Sys::Get()->LogOutRender();
 
     auto renderer = Renderer(Sysrenderer,[&](){
@@ -47,7 +42,7 @@ int main(int ,char**)
         sprintf(cont, "channel 1 current chunk: %d",(void*)Mix_GetChunk(1));
         
         return hbox({
-            Sysrenderer->Render(),
+            (Sysrenderer)->Render(),
             separator(),
             Logrenderer->Render()
         })|border;

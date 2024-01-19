@@ -1,5 +1,5 @@
 #include "music.hpp"
-#include "utils/file.h"
+#include "utils/fileTool.h"
 #include "sys.hpp"
 
 namespace SO
@@ -59,8 +59,7 @@ int AudioBase::Stop()
 }
 std::string& AudioBase::Label()
 {
-    //@TODO: "ogg" -> m_name
-    m_label = std::string("ogg")+" "+std::to_string(m_channel)+ " " +State2string(m_state);
+    m_label = name+" "+std::to_string(m_channel)+ " " +State2string(m_state);
     return m_label;
 };
 
@@ -92,9 +91,10 @@ State  AudioBase::Toggle()
 void AudioBase::init()
 {
     m_state = noDefine;
-
+    name = "notExits";
     if(IsFileExist(m_path)){
-        m_state = notReady;   
+        m_state = notReady;
+        name = GetFilename(m_path);
         m_chunk  =  Mix_LoadWAV(m_path.c_str());
         if(m_chunk != NULL)
         {

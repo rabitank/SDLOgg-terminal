@@ -97,7 +97,7 @@ namespace SO{
 
 
     public:
-        std::string name{"ogg"};
+        std::string name{"notExits"};
         
         friend void ::ChannelFinishedCallback(int in_channel);    
         friend class Sys;

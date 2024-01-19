@@ -42,6 +42,9 @@ public:
     static void Quit();
 
     static  Audio Load(const std::string &in_path);
+    static  bool LoadDialog(const std::string &in_initPath);
+    static  Audio LoadSingleDialog(const std::string &in_initPath);
+
     static Audio Cur(){return m_ins->m_curAudio;}
     static Audio FindBChunk(Mix_Chunk* in_chunk);
 
@@ -57,6 +60,8 @@ public:
     
     static ftxui::Component LogOutRender();
 
+    /// @brief 获得一个组件指针,指针指向的组件由sys管理与刷新
+    const ftxui::Component* ItemsRendererHandle(){flashItemsRenderer();return m_listRendererHandle;};
 
 //@temp: 暂时的public. 方便测试
 public:
@@ -68,12 +73,15 @@ public:
     Audio m_curAudio{nullptr};
     int m_channel;
 
+    ftxui::Component* m_listRendererHandle{nullptr};
+
     void addTList(const Audio& in_audio );
-    ftxui::Component ItemsRenderer();
+
 
     LogVector logVector;
 
 
+    ftxui::Component flashItemsRenderer();
 private:
     Sys(){
         m_channel = 1;    

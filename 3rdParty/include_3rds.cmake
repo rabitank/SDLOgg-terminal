@@ -10,6 +10,7 @@ add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/spdlog) # spdlog 默认静态
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/stb_image) 
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/yaml)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/ftxui)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/tinyfiledialogs)
 
 
 get_target_property(SDL2_image_DLL  SDL2_image::SDL2_image IMPORTED_LOCATION)
@@ -24,5 +25,5 @@ set(SDL_LIBRARIES  SDL2_image::SDL2_image SDL2_ttf::SDL2_ttf SDL2_mixer::SDL2_mi
 
 # 对于子层cmake变量 设置cache使之上层可见
 # 为了使目标在上层可见. -> 改为.cmake在top引用. cwd 成为顶层目录
-set(3rd_LIBS        glm spdlog::spdlog stb_image yaml-cpp  ${ftxui_LIBRARIES} ${SDL_LIBRARIES} CACHE INTERNAL "3rd libs target names" )
+set(3rd_LIBS        glm spdlog::spdlog stb_image yaml-cpp tinyfiledialogs ${ftxui_LIBRARIES} ${SDL_LIBRARIES} CACHE INTERNAL "3rd libs target names" )
 set(3rd_LIBS_DLLS   ${SDL2_image_DLL}  ${SDL2_DLL}  ${SDL2_ttf_DLL} ${SDL2_mixer_DLL} CACHE INTERNAL "3rd libs' dll path lists" )

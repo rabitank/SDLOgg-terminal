@@ -1,6 +1,12 @@
 #include "sys.hpp"
 #include "defines.hpp"
+#include "utils/fileTool.h"
 
+#ifdef PLOG
+#define TEMP_LOG(x) SO::Sys::Get()->logVector.back().second = x;
+#else
+#define TEMP_LOG()
+#endif
 namespace SO
 {
    
@@ -29,6 +35,42 @@ Audio Sys::Load(const std::string& in_path)
     return audio;
 }
 
+bool Sys::LoadDialog(const std::string &in_initPath)
+{
+    const char* pattern[1] ={"*.ogg"};
+    const char* repath = OpenFileDialog("(￣﹃￣)",in_initPath.c_str(),1,pattern,nullptr,1);
+    
+    if(!repath)
+    {
+        SDL_Log("open file failed! or you close it?");
+        return false;
+    }
+
+    std::string pathes =repath;
+    std::stringstream ss(pathes);
+    std::string pathbuf;
+
+    while( std::getline(ss,pathbuf,'|'))
+    {
+        Load(pathbuf);
+    };
+    return true;
+
+}
+
+Audio Sys::LoadSingleDialog(const std::string &in_initPath)
+{
+    const char* pattern[1] ={"*.ogg"};
+    const char* repath = OpenFileDialog("(￣﹃￣)",in_initPath.c_str(),1,pattern,nullptr,0);
+    
+    if(!repath)
+    {
+        SDL_Log("open file failed! or you close it?");
+    }
+    std::string path =repath;
+    return Load(path);
+}
+
 void Sys::logInit()
 {
     {
@@ -47,6 +89,14 @@ void Sys::logInit()
         Sys::Get()->logVector.emplace_back(  std::string("last chunk ptr:"), std::string(log) 
                                         );
     }
+    
+
+    /* temp logPos , always last*/
+    {
+        Sys::Get()->logVector.emplace_back(  std::string("temp info :"), std::string("empty") 
+                                        );
+    }
+
         
 }
 
@@ -161,19 +211,34 @@ void Sys::addTList(const Audio &in_audio)
     m_curPos = m_list.end()-1; 
 }
 
-ftxui::Component Sys::ItemsRenderer()
+
+
+ftxui::Component Sys::flashItemsRenderer()
 {
     using namespace ftxui;
     
-    auto vlist = Container::Vertical({
-        ftxui::Renderer(
-            [](){
-            return vbox( {
-            text("Label -oggpath -channel -state "),
-            separatorHeavy()
+    auto fileLoad = Button("FileLoad",[](){
+        auto success =  LoadDialog("F:\\");
+        #ifdef PLOG
+            if(!success)
+                TEMP_LOG("load not success");
+        #endif
+
+    })|size(HEIGHT,Constraint::EQUAL,3);
+    auto head =  ftxui::Renderer( 
+            fileLoad,
+            [=](){
+            return vbox({ 
+                hbox({
+                    fileLoad->Render(),
+                    text("Label")|center|bold|color(Color::Orange3)|xflex
+                }),
+                separatorHeavy()
             });
             }
-        )
+    );
+    auto vlist = Container::Vertical({
+        head
     });
 
 
@@ -181,9 +246,10 @@ ftxui::Component Sys::ItemsRenderer()
     {
         vlist->Add(Sys::AudioItemRender(audio));
     }
+
+    m_listRendererHandle = &vlist;
     return vlist;
 }
-
 
 bool Sys::subsys_init()
 {
@@ -212,7 +278,7 @@ void Sys::audioitem_clickCallBack(const Audio &in_audio)
 
 #ifdef PLOG
         char log[100];
-        sprintf(log,"cur channel %d ,cur audio: %s , ptr:%d",(*pos)->m_channel,(*pos)->name,(*pos)->m_chunk);
+        sprintf(log,"cur channel %d ,cur audio: %s , ptr:%d",(*pos)->m_channel,(*pos)->name.c_str(),(*pos)->m_chunk);
         Sys::Get()->logVector.at(1).second = log;
 #endif
 

@@ -1,0 +1,5 @@
+
+
+add_library(tinyfiledialogs STATIC tinyfiledialogs.cpp tinyfiledialogs.h )
+target_include_directories(tinyfiledialogs PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+
