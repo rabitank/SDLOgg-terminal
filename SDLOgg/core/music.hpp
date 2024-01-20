@@ -101,6 +101,8 @@ namespace SO{
         
         friend void ::ChannelFinishedCallback(int in_channel);    
         friend class Sys;
+        friend class AudiosBlock;
+
     private:
         /// @brief m_channel -1 means not load to channle to play.
         int m_channel{-1};

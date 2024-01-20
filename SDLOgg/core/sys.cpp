@@ -2,11 +2,7 @@
 #include "defines.hpp"
 #include "utils/fileTool.h"
 
-#ifdef PLOG
-#define TEMP_LOG(x) SO::Sys::Get()->logVector.back().second = x;
-#else
-#define TEMP_LOG()
-#endif
+
 namespace SO
 {
    
@@ -73,34 +69,6 @@ Audio Sys::LoadSingleDialog(const std::string &in_initPath)
     return Load(path);
 }
 
-void Sys::logInit()
-{
-    {
-        char logcontent[100] ;
-        sprintf(logcontent,"proccessinfo curAudio's pos: %s , streamLen: %s , chucklen: %s ",
-            "null",
-            "null",
-            "null"
-        );
-        Sys::Get()->logVector.emplace_back(std::string("procces info"),std::string(logcontent));
-    }
-
-    {
-        char log[100];
-        sprintf(log,"cur channel %d ,cur audio: %s , ptr:%d",Sys::Get()->m_channel,"null","null");
-        Sys::Get()->logVector.emplace_back(  std::string("last chunk ptr:"), std::string(log) 
-                                        );
-    }
-    
-
-    /* temp logPos , always last*/
-    {
-        Sys::Get()->logVector.emplace_back(  std::string("temp info :"), std::string("empty") 
-                                        );
-    }
-
-        
-}
 
 int Sys::Init()
 {
@@ -112,8 +80,12 @@ int Sys::Init()
             Mix_OpenAudio(m_ins->config.frequency,MIX_DEFAULT_FORMAT,m_ins->config.channel,4096);
 
 #ifdef PLOG
-            m_ins->logInit();
+            m_ins->m_logBlock.reset(new LogBlock(m_ins->logVector));
 #endif
+
+            m_ins->m_audiosBlock.reset(new AudiosBlock(m_ins->m_list,m_ins->m_curPos,m_ins->m_channel));
+
+            
 
             Mix_ChannelFinished(ChannelFinishedCallback);
             Mix_RegisterEffect(m_ins->m_channel,Sys::proccessInfo_effect,nullptr,nullptr);
@@ -128,8 +100,11 @@ void Sys::MainLoop()
 {
     using namespace ftxui;
 
-    auto Sysrenderer = ItemsRenderer();
-    auto Logrenderer = LogOutRender();
+    auto Sysrenderer = m_audiosBlock->RenderComponent();
+#ifdef PLOG
+    auto Logrenderer = m_logBlock->RenderComponent();
+#endif
+
     auto renderer = Renderer(Sysrenderer,[&](){
         char cont[64];
         sprintf(cont, "channel 1 current chunk: %d",(void*)Mix_GetChunk(1));
@@ -137,7 +112,9 @@ void Sys::MainLoop()
         return hbox({
             (Sysrenderer)->Render(),
             separator(),
+#ifdef PLOG
             Logrenderer->Render()
+#endif
             })|border;
     });
 
@@ -146,79 +123,7 @@ void Sys::MainLoop()
     
 }
 
-ftxui::Component Sys::AudioItemRender(Audio in_audio)
-{
-    using namespace ftxui;
-        
-    /* 播放键*/
-    ///@attention in_audio 是临时变量. 捕获ref无用 , 需要 = .
-    auto playButton = Button( &(in_audio->Label()) , [=](){
-        Sys::audioitem_clickCallBack(in_audio);
-    } , ButtonOption::Animated(Color::Default,Color::DarkCyan,
-                                        Color::GrayDark,Color::LightCyan3))
-                                    | size(HEIGHT,EQUAL,3);
-    /* 似乎 对于 animated button 的warp renderer 不起作用啊哈哈*/
 
-    /* 进度条 */
-    SliderOption<float> slideroption_f;
-    slideroption_f.min = 0.f;
-    slideroption_f.max = 100.f;
-    slideroption_f.increment = 0.01f;
-    slideroption_f.value = &(in_audio->m_proccess);
-    slideroption_f.color_inactive = Color::GrayDark;
-    slideroption_f.color_active = Color::GrayLight;
-    auto jindutiao = Slider(slideroption_f) | size(WIDTH,GREATER_THAN,40)|
-                                        CatchEvent([](Event in_event){
-                                        return false;
-                                    });
-
-    auto component = ftxui::Renderer(
-                playButton,
-            [=](){
-                if(Mix_GetChunk(Get()->m_channel) == in_audio->GetChunk())
-                    in_audio->m_proccess ;
-                    
-                Element buttonrender =  playButton->Render(); 
-                return vbox({
-                    buttonrender,
-                    jindutiao->Render()
-                });
-            }
-    );
-
-    return component;
-
-}
-
-ftxui::Component Sys::LogOutRender()
-{
-    using namespace ftxui;
-    Component content = Container::Vertical({
-        ftxui::Renderer(
-            [](){
-                return vbox({
-                text("SO Log")|bold|color(Color::BlueLight)|hcenter|xflex,
-                separatorHeavy()
-                })|xflex;
-            }
-        )
-    });
-
-
-    content->Add(Renderer([](){
-        Elements logs;
-        for(auto item : Sys::Get()->logVector)
-        {
-            logs.push_back(text(item.first)|bgcolor(Color::DarkBlue)|xflex);
-            logs.push_back(paragraph(item.second));
-            logs.push_back(separator());
-        }
-        return vbox(logs);
-        
-    }));
-
-    return content;
-}
 
 Audio Sys::FindBChunk(Mix_Chunk *in_chunk)
 {
@@ -229,63 +134,16 @@ Audio Sys::FindBChunk(Mix_Chunk *in_chunk)
     return *pos;
 }
 
-const ftxui::Component Sys::freshItemList()
-{
-    m_itemList->DetachAllChildren();
-    for(auto audio:m_list)
-    {
-        m_itemList->Add(AudioItemRender(audio));
-    }
-    return m_itemList;
-
-}
 
 void Sys::addTList(const Audio &in_audio)
 {
     m_list.push_back(in_audio);
-    m_itemList->Add(AudioItemRender(in_audio));
+    if(m_audiosBlock) m_audiosBlock->AddAudioTItem(in_audio);
     m_curAudio = in_audio;
     m_curPos = m_list.end()-1; 
 }
 
 
-ftxui::Component Sys::ItemsRenderer()
-{
-    using namespace ftxui;
-
-    freshItemList();
-    
-    auto fileLoad = Button("FileLoad",[](){
-        auto success =  LoadDialog("F:\\");
-        #ifdef PLOG
-            if(!success)
-                TEMP_LOG("load not success");
-        #endif
-
-    })|size(HEIGHT,Constraint::EQUAL,3);
-    auto head =  ftxui::Renderer( 
-            fileLoad,
-            [=](){
-            return vbox({ 
-                hbox({
-                    fileLoad->Render(),
-                    text("Label")|center|bold|color(Color::Orange3)|xflex
-                }),
-                separatorHeavy()
-            });
-            }
-    );
-    
-    auto vlist = Renderer(Container::Vertical({head,m_itemList}) , [=]{
-        return vbox({
-            head->Render(),
-            separatorHeavy(),
-            m_itemList->Render()| vscroll_indicator | frame |
-                size(HEIGHT, LESS_THAN, 20),
-        });
-    }); 
-    return vlist;
-}
 
 bool Sys::subsys_init()
 {
@@ -297,30 +155,25 @@ bool Sys::subsys_init()
 }
 
 
-
+/// @brief  被调用于 AudioBlock::audioitem_clickCallBack(),AudioBlock 已经确认了in_audio为list中的audio.
+///         Sys在此函数中处理audio.并传递给其他static callback.
+/// @param in_audio 
 void Sys::audioitem_clickCallBack(const Audio &in_audio)
 {
-    in_audio->Toggle();
-    in_audio->Label();
-
-    if(in_audio == Sys::Get()->m_curAudio) return;
-
-    AudioList& list = Sys::Get()->m_list;
-    const AudioPos pos = std::find(list.begin(),list.end(), in_audio);
-    if(pos!= list.end())
-    {
-        Sys::Get()->m_curPos = pos;
-        Sys::Get()->m_curAudio = *pos;
 
 #ifdef PLOG
         char log[100];
-        sprintf(log,"cur channel %d ,cur audio: %s , ptr:%d",(*pos)->m_channel,(*pos)->name.c_str(),(*pos)->m_chunk);
-        Sys::Get()->logVector.at(1).second = log;
+        sprintf(log,"cur channel %d ,cur audio: %s , ptr:%d",in_audio->m_channel,in_audio->name.c_str(),in_audio->m_chunk);
+        
+
+    /* lambda 定义式子加() mean: 立即执行*/
+    static auto logpos = [](){
+        return Sys::Get()->m_logBlock->SetALog("curAudio info","empty");
+        }(); 
+
+         if(logpos) logpos.value().get().second.assign(log);
 #endif
-
-    };
-
-
+    
 }
 
 void Sys::proccessInfo_effect(int chan, void *stream, int len, void *udata)
@@ -345,11 +198,12 @@ void Sys::proccessInfo_effect(int chan, void *stream, int len, void *udata)
             audio->GetChunk()->alen
         );
 
-        if(&SO::Sys::Get()->logVector[0]!=nullptr)
-        {
-            LogPara* const  logpos = &SO::Sys::Get()->logVector[0];
-            logpos->second.assign(logcontent);
-        }
+        static auto logpos = [](){
+        return Sys::Get()->m_logBlock->SetALog("procces info","empty");
+        }(); 
+
+        if(logpos) logpos.value().get().second.assign(logcontent);
+
 #endif
         
         
