@@ -39,12 +39,14 @@ bool Sys::LoadDialog(const std::string &in_initPath)
 {
     const char* pattern[1] ={"*.ogg"};
     const char* repath = OpenFileDialog("(￣﹃￣)",in_initPath.c_str(),1,pattern,nullptr,1);
+    TEMP_LOG(repath);
     
     if(!repath)
     {
         SDL_Log("open file failed! or you close it?");
         return false;
     }
+
 
     std::string pathes =repath;
     std::stringstream ss(pathes);
@@ -122,6 +124,27 @@ int Sys::Init()
     return 1;
 }
 
+void Sys::MainLoop()
+{
+    using namespace ftxui;
+
+    auto Sysrenderer = ItemsRenderer();
+    auto Logrenderer = LogOutRender();
+    auto renderer = Renderer(Sysrenderer,[&](){
+        char cont[64];
+        sprintf(cont, "channel 1 current chunk: %d",(void*)Mix_GetChunk(1));
+        
+        return hbox({
+            (Sysrenderer)->Render(),
+            separator(),
+            Logrenderer->Render()
+            })|border;
+    });
+
+    auto screen = ScreenInteractive::Fullscreen(); 
+    screen.Loop(renderer);
+    
+}
 
 ftxui::Component Sys::AudioItemRender(Audio in_audio)
 {
@@ -131,8 +154,10 @@ ftxui::Component Sys::AudioItemRender(Audio in_audio)
     ///@attention in_audio 是临时变量. 捕获ref无用 , 需要 = .
     auto playButton = Button( &(in_audio->Label()) , [=](){
         Sys::audioitem_clickCallBack(in_audio);
-    });
-
+    } , ButtonOption::Animated(Color::Default,Color::DarkCyan,
+                                        Color::GrayDark,Color::LightCyan3))
+                                    | size(HEIGHT,EQUAL,3);
+    /* 似乎 对于 animated button 的warp renderer 不起作用啊哈哈*/
 
     /* 进度条 */
     SliderOption<float> slideroption_f;
@@ -140,22 +165,22 @@ ftxui::Component Sys::AudioItemRender(Audio in_audio)
     slideroption_f.max = 100.f;
     slideroption_f.increment = 0.01f;
     slideroption_f.value = &(in_audio->m_proccess);
+    slideroption_f.color_inactive = Color::GrayDark;
+    slideroption_f.color_active = Color::GrayLight;
     auto jindutiao = Slider(slideroption_f) | size(WIDTH,GREATER_THAN,40)|
-                                    CatchEvent([](Event in_event){
+                                        CatchEvent([](Event in_event){
                                         return false;
                                     });
-        
+
     auto component = ftxui::Renderer(
-            Container::Vertical({
                 playButton,
-                jindutiao
-            }),
             [=](){
                 if(Mix_GetChunk(Get()->m_channel) == in_audio->GetChunk())
                     in_audio->m_proccess ;
-
+                    
+                Element buttonrender =  playButton->Render(); 
                 return vbox({
-                    playButton->Render(),
+                    buttonrender,
                     jindutiao->Render()
                 });
             }
@@ -204,18 +229,31 @@ Audio Sys::FindBChunk(Mix_Chunk *in_chunk)
     return *pos;
 }
 
+const ftxui::Component Sys::freshItemList()
+{
+    m_itemList->DetachAllChildren();
+    for(auto audio:m_list)
+    {
+        m_itemList->Add(AudioItemRender(audio));
+    }
+    return m_itemList;
+
+}
+
 void Sys::addTList(const Audio &in_audio)
 {
     m_list.push_back(in_audio);
+    m_itemList->Add(AudioItemRender(in_audio));
     m_curAudio = in_audio;
     m_curPos = m_list.end()-1; 
 }
 
 
-
-ftxui::Component Sys::flashItemsRenderer()
+ftxui::Component Sys::ItemsRenderer()
 {
     using namespace ftxui;
+
+    freshItemList();
     
     auto fileLoad = Button("FileLoad",[](){
         auto success =  LoadDialog("F:\\");
@@ -237,17 +275,15 @@ ftxui::Component Sys::flashItemsRenderer()
             });
             }
     );
-    auto vlist = Container::Vertical({
-        head
-    });
-
-
-    for(auto audio:  Sys::Get()->m_list )
-    {
-        vlist->Add(Sys::AudioItemRender(audio));
-    }
-
-    m_listRendererHandle = &vlist;
+    
+    auto vlist = Renderer(Container::Vertical({head,m_itemList}) , [=]{
+        return vbox({
+            head->Render(),
+            separatorHeavy(),
+            m_itemList->Render()| vscroll_indicator | frame |
+                size(HEIGHT, LESS_THAN, 20),
+        });
+    }); 
     return vlist;
 }
 

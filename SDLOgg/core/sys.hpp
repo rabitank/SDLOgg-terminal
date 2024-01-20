@@ -40,6 +40,7 @@ public:
 
     static Sys* Get(){return m_ins;};
     static void Quit();
+    void MainLoop();
 
     static  Audio Load(const std::string &in_path);
     static  bool LoadDialog(const std::string &in_initPath);
@@ -52,44 +53,49 @@ public:
     /// @return 0 : subsys init failed. 1 success, can continue call Get();
     static int Init();
 
+
+
 public:
+    
+    ftxui::ScreenInteractive m_screen{ftxui::ScreenInteractive::Fullscreen()};
+    ftxui::Component m_itemList{ftxui::Container::Vertical({})};
+    //@TODO:decide
+    ftxui::Component* m_listRendererHandle{nullptr};
+
+    const ftxui::Component freshItemList();
+    ftxui::Component ItemsRenderer();
+    static ftxui::Component LogOutRender();
     /// @brief temp. get renderer componet of an audio 
     /// @param in_audio 
     /// @return component.
     static ftxui::Component AudioItemRender(Audio in_audio);
     
-    static ftxui::Component LogOutRender();
-
     /// @brief 获得一个组件指针,指针指向的组件由sys管理与刷新
-    const ftxui::Component* ItemsRendererHandle(){flashItemsRenderer();return m_listRendererHandle;};
+    const ftxui::Component* ItemsRendererHandle(){ItemsRenderer();return m_listRendererHandle;};
 
 //@temp: 暂时的public. 方便测试
 public:
     using LogVector  = std::vector<std::pair<std::string,std::string>>;
     using LogPara = LogVector::value_type;
+    LogVector logVector;
 
     AudioList m_list;
     AudioPos m_curPos;
     Audio m_curAudio{nullptr};
     int m_channel;
 
-    ftxui::Component* m_listRendererHandle{nullptr};
-
+    /// @brief add audio to list and render:itemlist. call by Load
+    /// @param in_audio 
     void addTList(const Audio& in_audio );
 
-
-    LogVector logVector;
-
-
-    ftxui::Component flashItemsRenderer();
 private:
     Sys(){
         m_channel = 1;    
         m_list.reserve(10);
         m_curPos = m_list.begin();
-        
-
+        logVector.reserve(8);
     }
+
 
     static bool subsys_init();
     void logInit();

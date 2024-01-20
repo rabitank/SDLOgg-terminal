@@ -33,24 +33,9 @@ int main(int ,char**)
     Sys::Load("resource/ogg_test2.ogg");
     Sys::Load("resource/ogg_test3.ogg");
 
-
-    auto Sysrenderer = Sys::Get()->flashItemsRenderer();
-    auto Logrenderer = Sys::Get()->LogOutRender();
-
-    auto renderer = Renderer(Sysrenderer,[&](){
-        char cont[64];
-        sprintf(cont, "channel 1 current chunk: %d",(void*)Mix_GetChunk(1));
-        
-        return hbox({
-            (Sysrenderer)->Render(),
-            separator(),
-            Logrenderer->Render()
-        })|border;
-    });
-
-    auto screen = ScreenInteractive::Fullscreen(); 
-    screen.Loop(renderer);
+    Sys::Get()->MainLoop();
 
     Sys::Quit();
     return 0;
 }
+

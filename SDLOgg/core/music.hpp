@@ -126,6 +126,9 @@ namespace SO{
             Audio(Ref<AudioBase> audio):m_audioBase(audio){};
             const AudioBase* Get() const {return m_audioBase.get();};
 
+
+            /// @attention in_file  only accept single '/' as separator in path.
+            /// @param in_channel 
             static Audio Create(const std::string& in_file,int in_channel = -1){
                 return std::make_shared<AudioBase>(in_file,in_channel);
             }
