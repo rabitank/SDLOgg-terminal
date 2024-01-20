@@ -16,7 +16,7 @@ class LogBlock:public Block
 {
 public:
     LogBlock(LogVector& in_vectorref):
-    m_logvector(in_vectorref){init();};
+    m_logvector(in_vectorref){init();freshItemList(); };
 
 public:
 

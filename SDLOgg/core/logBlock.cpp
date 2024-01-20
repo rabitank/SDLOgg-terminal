@@ -6,30 +6,23 @@ const ftxui::Component SO::LogBlock::freshItemList()
     using namespace ftxui;
 
     m_itemList->DetachAllChildren();
-    auto log = [](LogPara& in_log){
-        return Renderer([&](){
-            return vbox({
-                text(in_log.first)|bgcolor(Color::DarkBlue)|xflex,
-                text(in_log.second)                              
-            });
-        });
-    };
 
-    for(auto item : m_logvector)
+    /* 这里之前由于auto没加&导致了 bad_alloc.
+    呃呃. Renderer的Render lambda反复运行.局部变量的销毁造成了空悬的LogPara引用
+    至于为什么导致了bad_alloc,呃呃,这个不知道 */
+    for(auto& item : m_logvector)
     {
-        m_itemList->Add(log(item));
+        m_itemList->Add(logItemRender(item));
     }
 
-    
+
     return m_itemList;
 }
 
 ftxui::Component SO::LogBlock::RenderComponent()
 {
 
-    using namespace ftxui;
-    freshItemList();
-    
+    using namespace ftxui;    
     Component content = ftxui::Renderer(
             [this](){
                 return vbox({
@@ -139,6 +132,10 @@ void SO::LogBlock::init()
         Sys::Get()->logVector.emplace_back(  std::string("null"), std::string("empty") );
     }
 
+    {
+        m_logvector.emplace_back("null","empty");
+    }
+
 }
 
 void SO::LogBlock::addEmpty()
@@ -152,7 +149,7 @@ ftxui::Component SO::LogBlock::logItemRender(LogPara& in_log){
     return Renderer([&](){
         return vbox({
             text(in_log.first)|bgcolor(Color::DarkCyan)|xflex,
-            text(in_log.second)                              
+            paragraph(in_log.second)                              
         });
     });
 }
