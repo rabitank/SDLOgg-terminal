@@ -11,8 +11,13 @@
 #include "ftxui/dom/elements.hpp"
 
 #include "music.hpp"
+
+#include "defines.hpp"
+
 #include "audiosBlock.hpp"
 #include "logBlock.hpp"
+#include "effectBlock.hpp"
+
 
 
 /// @brief reCall when: 1.当channel被要求播放新chunk时(此时仍持有旧chunk) 
@@ -23,6 +28,7 @@ void ChannelFinishedCallback(int in_channel);
 
 
 namespace SO{
+
 
 
 class Sys{
@@ -65,6 +71,7 @@ public:
 public:
     friend class AudiosBlock;
     friend class LogBlock;
+    friend class EffectBlock;
 
     LogVector logVector;
     std::unique_ptr<LogBlock> m_logBlock{nullptr};
@@ -74,6 +81,12 @@ public:
     Audio m_curAudio{nullptr};
     int m_channel;
     std::unique_ptr<AudiosBlock> m_audiosBlock{nullptr};
+
+    Sint16 m_audioDistance{0};
+    Sint16 m_audioAngle{0};
+    const int m_effectcanvaWidth  {80};
+    const int m_effectcanvaHeight {100};
+    std::unique_ptr<EffectBlock> m_effectBlock{nullptr};
 
     /// @brief add audio to list and render:itemlist. call by Load
     /// @param in_audio 

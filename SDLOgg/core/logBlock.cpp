@@ -1,23 +1,7 @@
 #include "logBlock.hpp"
 #include "sys.hpp"
 
-const ftxui::Component SO::LogBlock::freshItemList()
-{
-    using namespace ftxui;
 
-    m_itemList->DetachAllChildren();
-
-    /* 这里之前由于auto没加&导致了 bad_alloc.
-    呃呃. Renderer的Render lambda反复运行.局部变量的销毁造成了空悬的LogPara引用
-    至于为什么导致了bad_alloc,呃呃,这个不知道 */
-    for(auto& item : m_logvector)
-    {
-        m_itemList->Add(logItemRender(item));
-    }
-
-
-    return m_itemList;
-}
 
 ftxui::Component SO::LogBlock::RenderComponent()
 {
@@ -25,11 +9,21 @@ ftxui::Component SO::LogBlock::RenderComponent()
     using namespace ftxui;    
     Component content = ftxui::Renderer(
             [this](){
+                Elements alllog;
+                for(const auto& item:m_logvector)
+                {
+                    alllog.push_back(text(item.first)|color(Color::Black)|bold |bgcolor(Color::DarkCyan)|xflex);
+                    alllog.push_back(hflow(paragraph(item.second)));
+                }
+
                 return vbox({
-                text("SO Log")|bold|color(Color::BlueLight)|hcenter|xflex,
+                text("SO Log")|bold|color(Color::CyanLight)|hcenter|xflex,
                 separatorHeavy(),
-                Sys::Get()->m_logBlock->m_itemList->Render()
-                })|xflex;
+                
+                vbox(alllog) 
+                //Sys::Get()->m_logBlock->m_itemList->Render()|vscroll_indicator | yframe|flex
+                    
+                })|flex;
             }
         );
     return content;
@@ -65,7 +59,7 @@ std::optional<std::reference_wrapper<SO::LogPara>>  SO::LogBlock::SetALog(const 
 std::optional<std::reference_wrapper<SO::LogPara>> SO::LogBlock::SetALogBPos(int pos, const char *in_content, const char *in_title)
 {
     // optional view: https://zhuanlan.zhihu.com/p/64985296
-    // ref . reference_wrapper.  view: 
+    // ref . reference_wrapper. view: https://en.cppreference.com/w/cpp/utility/functional/reference_wrapper
     // 如需显式返回. 请使用make_optional<>: in_place API
 
     if(pos>=m_logvector.size())
@@ -103,8 +97,6 @@ std::optional<std::reference_wrapper<SO::LogPara>> SO::LogBlock::FindBTitle(cons
 
     std::list<std::string> slist;
     
-    
-    
     if(pos == m_logvector.end()) return std::nullopt;
     auto& log = *pos;
 
@@ -132,24 +124,13 @@ void SO::LogBlock::init()
         Sys::Get()->logVector.emplace_back(  std::string("null"), std::string("empty") );
     }
 
-    {
-        m_logvector.emplace_back("null","empty");
-    }
+    // {
+    //     m_logvector.emplace_back("null","empty");
+    // }
 
 }
 
 void SO::LogBlock::addEmpty()
 {
     m_logvector.emplace_back("null","empty");
-    m_itemList->Add(logItemRender(m_logvector.back()));
-}
-
-ftxui::Component SO::LogBlock::logItemRender(LogPara& in_log){
-    using namespace ftxui;
-    return Renderer([&](){
-        return vbox({
-            text(in_log.first)|bgcolor(Color::DarkCyan)|xflex,
-            paragraph(in_log.second)                              
-        });
-    });
 }

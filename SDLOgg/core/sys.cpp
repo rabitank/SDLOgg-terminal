@@ -3,6 +3,7 @@
 #include "utils/fileTool.h"
 
 
+
 namespace SO
 {
    
@@ -82,13 +83,13 @@ int Sys::Init()
 #ifdef PLOG
             m_ins->m_logBlock.reset(new LogBlock(m_ins->logVector));
 #endif
-
             m_ins->m_audiosBlock.reset(new AudiosBlock(m_ins->m_list,m_ins->m_curPos,m_ins->m_channel));
-
-            
+            m_ins->m_effectBlock.reset(new EffectBlock(m_ins->m_audioAngle,m_ins->m_audioDistance ,m_ins-> m_effectcanvaWidth ,m_ins->m_effectcanvaHeight));
 
             Mix_ChannelFinished(ChannelFinishedCallback);
+            
             Mix_RegisterEffect(m_ins->m_channel,Sys::proccessInfo_effect,nullptr,nullptr);
+
             
         }
         else return 0;
@@ -100,22 +101,45 @@ void Sys::MainLoop()
 {
     using namespace ftxui;
 
-    auto Sysrenderer = m_audiosBlock->RenderComponent();
+    auto AudiosBlock = m_audiosBlock->RenderComponent();
 #ifdef PLOG
     auto Logrenderer = m_logBlock->RenderComponent();
 #endif
+    auto Effectrenderer = m_effectBlock->RenderComponent();
 
-    auto renderer = Renderer(Sysrenderer,[&](){
+    auto SysRenderer = Container::Horizontal(
+        {
+            AudiosBlock,
+            Container::Vertical(
+                {
+                    #ifdef PLOG
+                    Logrenderer,
+                    #endif
+                    Effectrenderer,
+                }
+            )
+
+        }
+    );
+
+
+    auto renderer = Renderer(SysRenderer,[&](){
         char cont[64];
         sprintf(cont, "channel 1 current chunk: %d",(void*)Mix_GetChunk(1));
         
-        return hbox({
-            (Sysrenderer)->Render(),
-            separator(),
+        return window(text("这是SDLogg-------------------想歪的自重")|bold|color(Color::CyanLight)|center , 
+        hbox({
+            (AudiosBlock)->Render(),
+            separatorHeavy(),
+            vbox({
 #ifdef PLOG
-            Logrenderer->Render()
+            Logrenderer->Render()|xflex|vscroll_indicator,
+            separatorHeavy(),
 #endif
-            })|border;
+            Effectrenderer->Render()|flex
+            })|xflex
+        })
+        );
     });
 
     auto screen = ScreenInteractive::Fullscreen(); 
@@ -173,7 +197,7 @@ void Sys::audioitem_clickCallBack(const Audio &in_audio)
 
          if(logpos) logpos.value().get().second.assign(log);
 #endif
-    
+    Sys::Get()->m_effectBlock->audioitem_clickCallBack(in_audio);
 }
 
 void Sys::proccessInfo_effect(int chan, void *stream, int len, void *udata)
@@ -205,8 +229,7 @@ void Sys::proccessInfo_effect(int chan, void *stream, int len, void *udata)
         if(logpos) logpos.value().get().second.assign(logcontent);
 
 #endif
-        
-        
+    
     }
 
 }

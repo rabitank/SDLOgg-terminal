@@ -7,8 +7,7 @@
 void ChannelFinishedCallback(int in_channel);
 namespace SO{
 
-    using AudioList = std::vector<Audio>;
-    using AudioPos = AudioList::iterator;
+
 
 
     /// @brief AudiosBlock 应该成为一个纯管理类. 用于拆分Sys中绘制AudioListBlock的责任

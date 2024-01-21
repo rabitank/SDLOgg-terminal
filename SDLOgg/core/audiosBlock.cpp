@@ -76,15 +76,15 @@ ftxui::Component AudiosBlock::RenderComponent()
             if(!success)
                 TEMP_LOG("load not success");
         #endif
+    }, ButtonOption::Ascii()) |color(Color::LightCyan3) ;
 
-    })|size(HEIGHT,Constraint::EQUAL,3);
     auto head =  ftxui::Renderer( 
             fileLoad,
             [=](){
             return vbox({ 
                 hbox({
                     fileLoad->Render(),
-                    text("Label")|center|bold|color(Color::Orange3)|xflex
+                    text("Label")|center|bold|color(Color::CyanLight)|xflex
                 }),
                 separatorHeavy()
             });

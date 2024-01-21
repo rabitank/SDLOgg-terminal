@@ -8,19 +8,18 @@
 
 namespace SO{
     
-using LogVector  = std::vector<std::pair<std::string,std::string>>;
-using LogPara = LogVector::value_type;
+    using LogVector  = std::vector<std::pair<std::string,std::string>>;
+    using LogPara = LogVector::value_type;  
 
 /// @brief LogBlock 应该成为一个管理类. 用于拆分Sys中绘制Log的责任
 class LogBlock:public Block
 {
 public:
     LogBlock(LogVector& in_vectorref):
-    m_logvector(in_vectorref){init();freshItemList(); };
+    m_logvector(in_vectorref){init(); };
 
 public:
 
-    const ftxui::Component freshItemList();
     virtual ftxui::Component RenderComponent() override;
 
     /// @brief 获取一个空位然后设置log信息 ,没空位就加。vector不能再加再加就realloc时就返回空.
@@ -55,12 +54,12 @@ private:
 
     void init();
     void addEmpty();
-    ftxui::Component logItemRender(LogPara& in_para);
-
 
     SO::LogVector& m_logvector;
 
 };
+
+
 }
 
 

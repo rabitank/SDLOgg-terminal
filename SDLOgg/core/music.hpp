@@ -154,4 +154,8 @@ namespace SO{
             
     };
 
+    
+    using AudioList = std::vector<Audio>;
+    using AudioPos = AudioList::iterator;
+
 }
