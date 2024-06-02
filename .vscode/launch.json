@@ -13,13 +13,15 @@
                     // add the directory where our target was built to the PATHs
                     // it gets resolved by CMake Tools:
                     "name": "PATH",
-                    "value": "${env:PATH}:${command:cmake.getLaunchTargetDirectory}"
+                    "value": "${env:PATH}:${command:cmake.getLaunchTargetDirectory}",
+                
                 },
                 {
                     "name": "OTHER_VALUE",
                     "value": "Something something"
                 }
             ],
+            "internalConsoleOptions": "openOnFirstSessionStart",
             "externalConsole": true,
             "MIMode": "gdb",
             //"miDebuggerPath": "D:/CppMinGW/mingw64/bin",

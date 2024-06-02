@@ -62,6 +62,7 @@ char const * OpenFileDialog(char const *in_Title, char const *in_DefaultPathAndO
 {
     char * pathes = tinyfd_openFileDialog(in_Title,in_DefaultPathAndOrFile,in_NumOfFilterPatterns,in_FilterPatterns,in_SingleFilterDescription,in_AllowMultipleSelects);
     char * pos = pathes;
+    if(!pos) return nullptr;
     while(*pos != '\0')
     {
         if (*pos == '\\')

@@ -22,8 +22,6 @@ using namespace ftxui;
 
 SO::Audio togg;
 
-
-
 int main(int ,char**)
 {
     using namespace SO;
@@ -33,9 +31,9 @@ int main(int ,char**)
         SDL_Log("Sys backends init failed!");
     }
 
-    auto togg = Sys::Load("resource/ogg_test1.ogg");
-    Sys::Load("resource/ogg_test2.ogg");
-    Sys::Load("resource/ogg_test3.ogg");
+    // auto togg = Sys::Load("resource/ogg_test1.ogg");
+    // Sys::Load("resource/ogg_test2.ogg");
+    // Sys::Load("resource/ogg_test3.ogg");
 
     Sys::Get()->MainLoop();
 

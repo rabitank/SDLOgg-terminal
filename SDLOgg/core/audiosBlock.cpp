@@ -71,7 +71,7 @@ ftxui::Component AudiosBlock::RenderComponent()
     freshItemList();
     
     auto fileLoad = Button("FileLoad",[](){
-        auto success =  Sys::LoadDialog("F:\\");
+        auto success =  Sys::LoadDialog("D:\\");
         #ifdef PLOG
             if(!success)
                 TEMP_LOG("load not success");

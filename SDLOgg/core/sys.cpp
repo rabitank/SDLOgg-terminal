@@ -34,17 +34,15 @@ Audio Sys::Load(const std::string& in_path)
 
 bool Sys::LoadDialog(const std::string &in_initPath)
 {
-    const char* pattern[1] ={"*.ogg"};
-    const char* repath = OpenFileDialog("(￣﹃￣)",in_initPath.c_str(),1,pattern,nullptr,1);
-    TEMP_LOG(repath);
+    const char* pattern[2] ={"*.ogg","*.mp3"};
+    const char* repath = OpenFileDialog("(￣﹃￣)",in_initPath.c_str(),2,pattern,"Music or Audio",1);
     
     if(!repath)
     {
         SDL_Log("open file failed! or you close it?");
         return false;
     }
-
-
+    TEMP_LOG(repath);
     std::string pathes =repath;
     std::stringstream ss(pathes);
     std::string pathbuf;
